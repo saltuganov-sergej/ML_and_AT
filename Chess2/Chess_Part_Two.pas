@@ -10,9 +10,9 @@ TYPE
           END;    
 
 VAR
-  Bishop, Rook, Knight: ARRAY[1..Max] of Coord;
+  Figure, Knight: ARRAY[1..Max] of Coord;
   Board: ARRAY[1..Max, 1..Max] OF CHAR;
-  i, j, M, N, b, r, k, d, e, f, Count: INTEGER;
+  i, j, M, N, Index, r, k, d, e, f, Count: INTEGER;
   Ch: CHAR;
   FIn, FOut: TEXT;
   
@@ -34,8 +34,8 @@ PROCEDURE CheckLine(VAR dir1, dir2: INTEGER);
 VAR
   ytemp, xtemp: INTEGER;
 BEGIN
-  xtemp := Rook[e].x;
-  ytemp := Rook[e].y;
+  xtemp := Figure[e].x;
+  ytemp := Figure[e].y;
   WHILE ((Board[ytemp + dir1, xtemp + dir2] = '.') OR (Board[ytemp + dir1, xtemp + dir2] = '#')) DO
     BEGIN
       Board[ytemp + dir1, xtemp + dir2] := '#';
@@ -44,71 +44,47 @@ BEGIN
     END
 END;
 
-PROCEDURE CheckForRook();
+PROCEDURE CheckForRookAndBishop();
 VAR
   dir1, dir2: INTEGER;
 BEGIN
-  FOR e := 1 TO r DO
+  FOR e := 1 TO Index DO
     BEGIN
-      dir1 := 0;
-      dir2 := 1;
-      CheckLine(dir1, dir2);
-      dir1 := 0;
-      dir2 := -1;
-      CheckLine(dir1, dir2);
-      dir1 := 1;
-      dir2 := 0;
-      CheckLine(dir1, dir2);
-      dir1 := -1;
-      dir2 := 0;
-      CheckLine(dir1, dir2);   
-    END
+      IF (Board[Figure[e].y, Figure[e].x] = 'R') THEN
+        BEGIN
+          dir1 := 0;
+          dir2 := 1;
+          CheckLine(dir1, dir2);
+          dir2 := -1;
+          CheckLine(dir1, dir2);
+          dir1 := 1;
+          dir2 := 0;
+          CheckLine(dir1, dir2);
+          dir1 := -1;
+          CheckLine(dir1, dir2);   
+        END
+      ELSE
+        BEGIN
+          dir1 := 1; 
+          dir2 := 1;
+          CheckLine(dir1, dir2);
+          dir2 := -1;
+          CheckLine(dir1, dir2);
+          dir1 := -1;
+          CheckLine(dir1, dir2);
+          dir2 := 1;
+          CheckLine(dir1, dir2);
+        END  
+    END    
 END;
-
-
-PROCEDURE CheckDiagonal(VAR dir1, dir2: INTEGER);
-VAR
-  ytemp, xtemp: INTEGER;
-BEGIN
-  xtemp := Bishop[f].x;
-  ytemp := Bishop[f].y;
-  WHILE ((Board[ytemp + dir1, xtemp + dir2] = '.') OR (Board[ytemp + dir1, xtemp + dir2] = '#')) DO
-    BEGIN
-      Board[ytemp + dir1, xtemp + dir2]:='#';
-      xtemp := xtemp + dir2;
-      ytemp := ytemp + dir1;
-    END; 
-END;
-
-PROCEDURE CheckForBishop();
-VAR
-  dir1, dir2: INTEGER;
-BEGIN
-  FOR f:=1 TO b DO
-    BEGIN
-      dir1 := 1; 
-      dir2 := 1;
-      CheckDiagonal(dir1, dir2);
-      dir2 := -1;
-      CheckDiagonal(dir1, dir2);
-      dir1 := -1;
-      CheckDiagonal(dir1, dir2);
-      dir2 := 1;
-      CheckDiagonal(dir1, dir2);
-    END
-END;
-
-
-  
   
 BEGIN
   ASSIGN(FIn, 'input.txt');
   RESET(FIn);
   READLN(FIn, M, N);
   {Начальные индексы для фигур:}
-  b:=0; //Для слонов
-  r:=0; //Для ладей
-  k:=0; //Для коней
+  Index := 0;
+  k := 0;
   
   //Считывание координат всех фигур
   FOR i := 1 TO M DO
@@ -116,29 +92,24 @@ BEGIN
       FOR j := 1 TO N DO
         BEGIN
           READ(FIn, Board[i, j]);
-          IF Board[i, j] = 'B' THEN
+          IF (Board[i, j] = 'B') OR (Board[i, j] = 'R') THEN
             BEGIN
-              b := b + 1;
-              Bishop[b].x := j;
-              Bishop[b].y := i
+              Index := Index + 1;
+              Figure[Index].x := j;
+              Figure[Index].y := i
             END;
-          IF Board[i, j] = 'K' THEN
+          IF (Board[i, j] = 'K') THEN
             BEGIN
               k := k + 1;
               Knight[k].x := j;
               Knight[k].y := i
-            END;
-          IF Board[i, j] = 'R' THEN
-            BEGIN
-              r := r + 1;
-              Rook[r].x := j;
-              Rook[r].y := i
-            END    
+            END   
         END;      
       READLN(FIn)  
     END;
-  CLOSE(FIn);  
-  {Вывод поля с фигурами, но без отметки клеток под боем}    
+  CLOSE(FIn);
+    
+  //Вывод поля с фигурами, но без отметки клеток под боем}    
   {FOR i := 1 TO M DO
     BEGIN
       FOR j := 1 TO N DO
@@ -146,29 +117,28 @@ BEGIN
       WRITELN      
     END;}
    
-  CheckForKnight; //Определение клеток, которые бьют Кони
-  CheckForRook;   //Определение клеток, которые бьют Ладьи
-  CheckForBishop; //Определение клеток, которые бьют Слоны
+  CheckForKnight;        //Определение клеток, которые бьют Кони
+  CheckForRookAndBishop; //Определение клеток, которые бьют Слоны и Ладьи
     
-  //Вывод координат слонов    
-  FOR i:=1 to b DO
-    WRITE('i=', i, ': ', Bishop[i].y, ' ', Bishop[i].x, '   ');
-  WRITELN;
+  //Вывод координат не слонов, а всех    
+  {FOR i := 1 to Index DO
+    WRITE('i=', i, ': ', Figure[i].y, ' ', Figure[i].x, '   ');
+  WRITELN; }
   //Вывод координат коней  
-  FOR i:=1 to k DO
+  {FOR i:=1 to k DO
     WRITE('i=', i, ': ', Knight[i].y, ' ', Knight[i].x, '   ');
-  WRITELN;  
+  WRITELN; } 
   //Вывод координат ладей
-  FOR i:=1 to r DO
+  {FOR i:=1 to r DO
     WRITE('i=', i, ': ', Rook[i].y, ' ', Rook[i].x, '   ');
-  WRITELN;        
-  {Вывод поля с фигурами и с отмеченными клетками под боем}
-  {FOR i:=1 TO M DO
+  WRITELN;}        
+  //Вывод поля с фигурами и с отмеченными клетками под боем}
+  FOR i:=1 TO M DO
     BEGIN
       FOR j:=1 TO N DO
         WRITE(Board[i, j],' ');
       WRITELN      
-    END;}
+    END;
     
   Count:=0;
   FOR i := 1 TO M DO
