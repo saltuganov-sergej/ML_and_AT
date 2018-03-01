@@ -1,7 +1,7 @@
 PROGRAM Chess2(INPUT, OUTPUT);
 
 CONST
-  Max = 15;
+  Max = 100;
 
 TYPE    
   Coord = RECORD
@@ -12,9 +12,9 @@ TYPE
 VAR
   Bishop, Rook, Knight: ARRAY[1..Max] of Coord;
   Board: ARRAY[1..Max, 1..Max] OF CHAR;
-  i, j, M, N, b, r, k, d, e, f: INTEGER;
+  i, j, M, N, b, r, k, d, e, f, Count: INTEGER;
   Ch: CHAR;
-  FIn: TEXT;
+  FIn, FOut: TEXT;
   
 PROCEDURE CheckForKnight();
 BEGIN
@@ -53,12 +53,14 @@ BEGIN
       dir1 := 0;
       dir2 := 1;
       CheckLine(dir1, dir2);
+      dir1 := 0;
       dir2 := -1;
       CheckLine(dir1, dir2);
       dir1 := 1;
       dir2 := 0;
       CheckLine(dir1, dir2);
       dir1 := -1;
+      dir2 := 0;
       CheckLine(dir1, dir2);   
     END
 END;
@@ -100,7 +102,7 @@ END;
   
   
 BEGIN
-  ASSIGN(FIn, 'field.txt');
+  ASSIGN(FIn, 'input.txt');
   RESET(FIn);
   READLN(FIn, M, N);
   {Начальные индексы для фигур:}
@@ -114,22 +116,19 @@ BEGIN
       FOR j := 1 TO N DO
         BEGIN
           READ(FIn, Board[i, j]);
-          IF Board[i, j] = 'B'
-          THEN
+          IF Board[i, j] = 'B' THEN
             BEGIN
               b := b + 1;
               Bishop[b].x := j;
               Bishop[b].y := i
             END;
-          IF Board[i, j] = 'K'
-          THEN
+          IF Board[i, j] = 'K' THEN
             BEGIN
               k := k + 1;
               Knight[k].x := j;
               Knight[k].y := i
             END;
-          IF Board[i, j] = 'R'
-          THEN
+          IF Board[i, j] = 'R' THEN
             BEGIN
               r := r + 1;
               Rook[r].x := j;
@@ -138,13 +137,14 @@ BEGIN
         END;      
       READLN(FIn)  
     END;
+  CLOSE(FIn);  
   {Вывод поля с фигурами, но без отметки клеток под боем}    
-  FOR i := 1 TO M DO
+  {FOR i := 1 TO M DO
     BEGIN
       FOR j := 1 TO N DO
         WRITE(Board[i, j], ' ');
       WRITELN      
-    END;
+    END;}
    
   CheckForKnight; //Определение клеток, которые бьют Кони
   CheckForRook;   //Определение клеток, которые бьют Ладьи
@@ -163,10 +163,20 @@ BEGIN
     WRITE('i=', i, ': ', Rook[i].y, ' ', Rook[i].x, '   ');
   WRITELN;        
   {Вывод поля с фигурами и с отмеченными клетками под боем}
-  FOR i:=1 TO M DO
+  {FOR i:=1 TO M DO
     BEGIN
       FOR j:=1 TO N DO
         WRITE(Board[i, j],' ');
       WRITELN      
-    END; 
+    END;}
+    
+  Count:=0;
+  FOR i := 1 TO M DO
+    FOR j := 1 TO N DO
+      IF Board[i, j] = '#' THEN
+        Count := Count + 1;
+  ASSIGN(FOut, 'output.txt');
+  REWRITE(FOut);
+  WRITELN(FOut, Count);
+  CLOSE(FOut)       
 END.  
