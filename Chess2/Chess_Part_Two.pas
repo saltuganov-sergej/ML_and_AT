@@ -60,6 +60,7 @@ VAR
 BEGIN
   FOR i := 1 TO RBIndex DO
     BEGIN
+      //Проверка для Ладей идет по строке и столбцу в четырех направлениях
       IF (Board[Figure[i].y, Figure[i].x] = 'R') THEN
         BEGIN
           dir1 := 0;
@@ -74,6 +75,7 @@ BEGIN
           CheckLine(dir1, dir2);   
         END
       ELSE
+        //Проверка для Слонов идет по диагоналям в четырех направлениях
         BEGIN
           dir1 := 1; 
           dir2 := 1;
