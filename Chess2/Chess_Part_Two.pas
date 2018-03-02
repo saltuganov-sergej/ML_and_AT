@@ -1,3 +1,13 @@
+{ 14.16 Шахматы 2 (5)
+  Шахматная доска состоит из M строк и N столбцов (1 <= M, N <= 15).
+  На доске расставлены кони, слоны и ладьи. По заданному расположению фигур 
+  требуется определить количество клеток доски, находящихся под боем.
+  Клетки, занятые фигурами, не учитываются. }
+  
+//Saltuganov S.N.
+//Dev+GNU Pascal 1.9.4.13  
+
+
 PROGRAM Chess2(INPUT, OUTPUT);
 
 CONST
@@ -12,7 +22,7 @@ TYPE
 VAR
   Figure, Knight: ARRAY[1..Max] of Coord;
   Board: ARRAY[1..Max, 1..Max] OF CHAR;
-  i, j, M, N, Index, r, k, d, e, f, Count: INTEGER;
+  i, j, k, M, N, RBIndex, KIndex, Count: INTEGER;
   Ch: CHAR;
   FIn, FOut: TEXT;
   
@@ -21,11 +31,11 @@ BEGIN
    FOR i := 1 TO M DO
     FOR j := 1 TO N DO
       IF (Board[i, j] = '.') THEN
-        FOR d:=1 TO k DO
+        FOR k := 1 TO KIndex DO
           BEGIN
-            IF ((abs(Knight[d].y - i) = 2) AND (abs(Knight[d].x - j) = 1)) THEN
+            IF ((abs(Knight[k].y - i) = 2) AND (abs(Knight[k].x - j) = 1)) THEN
               Board[i, j] := '#';
-            IF ((abs(Knight[d].y - i) = 1) AND (abs(Knight[d].x - j) = 2)) THEN
+            IF ((abs(Knight[k].y - i) = 1) AND (abs(Knight[k].x - j) = 2)) THEN
               Board[i, j] := '#'
           END;  
 END;
@@ -34,8 +44,8 @@ PROCEDURE CheckLine(VAR dir1, dir2: INTEGER);
 VAR
   ytemp, xtemp: INTEGER;
 BEGIN
-  xtemp := Figure[e].x;
-  ytemp := Figure[e].y;
+  xtemp := Figure[i].x;
+  ytemp := Figure[i].y;
   WHILE ((Board[ytemp + dir1, xtemp + dir2] = '.') OR (Board[ytemp + dir1, xtemp + dir2] = '#')) DO
     BEGIN
       Board[ytemp + dir1, xtemp + dir2] := '#';
@@ -48,9 +58,9 @@ PROCEDURE CheckForRookAndBishop();
 VAR
   dir1, dir2: INTEGER;
 BEGIN
-  FOR e := 1 TO Index DO
+  FOR i := 1 TO RBIndex DO
     BEGIN
-      IF (Board[Figure[e].y, Figure[e].x] = 'R') THEN
+      IF (Board[Figure[i].y, Figure[i].x] = 'R') THEN
         BEGIN
           dir1 := 0;
           dir2 := 1;
@@ -82,9 +92,9 @@ BEGIN
   ASSIGN(FIn, 'input.txt');
   RESET(FIn);
   READLN(FIn, M, N);
-  {Начальные индексы для фигур:}
-  Index := 0;
-  k := 0;
+  {Начальные индексы для фигур}
+  RBIndex := 0; //для Слонов и Ладей
+  KIndex := 0;  //для Коней
   
   //Считывание координат всех фигур
   FOR i := 1 TO M DO
@@ -92,24 +102,26 @@ BEGIN
       FOR j := 1 TO N DO
         BEGIN
           READ(FIn, Board[i, j]);
+          //Считывание координат Слонов и Ладей
           IF (Board[i, j] = 'B') OR (Board[i, j] = 'R') THEN
             BEGIN
-              Index := Index + 1;
-              Figure[Index].x := j;
-              Figure[Index].y := i
+              RBIndex := RBIndex + 1;
+              Figure[RBIndex].x := j;
+              Figure[RBIndex].y := i
             END;
+          //Считывание координат Коней  
           IF (Board[i, j] = 'K') THEN
             BEGIN
-              k := k + 1;
-              Knight[k].x := j;
-              Knight[k].y := i
+              KIndex := KIndex + 1;
+              Knight[KIndex].x := j;
+              Knight[KIndex].y := i
             END   
         END;      
       READLN(FIn)  
     END;
   CLOSE(FIn);
     
-  //Вывод поля с фигурами, но без отметки клеток под боем}    
+  //Вывод в консоль поля с фигурами, но без отметки клеток под боем}    
   {FOR i := 1 TO M DO
     BEGIN
       FOR j := 1 TO N DO
@@ -120,31 +132,22 @@ BEGIN
   CheckForKnight;        //Определение клеток, которые бьют Кони
   CheckForRookAndBishop; //Определение клеток, которые бьют Слоны и Ладьи
     
-  //Вывод координат не слонов, а всех    
-  {FOR i := 1 to Index DO
-    WRITE('i=', i, ': ', Figure[i].y, ' ', Figure[i].x, '   ');
-  WRITELN; }
-  //Вывод координат коней  
-  {FOR i:=1 to k DO
-    WRITE('i=', i, ': ', Knight[i].y, ' ', Knight[i].x, '   ');
-  WRITELN; } 
-  //Вывод координат ладей
-  {FOR i:=1 to r DO
-    WRITE('i=', i, ': ', Rook[i].y, ' ', Rook[i].x, '   ');
-  WRITELN;}        
-  //Вывод поля с фигурами и с отмеченными клетками под боем}
-  FOR i:=1 TO M DO
+          
+  //Вывод в консоль поля с фигурами и с отмеченными клетками под боем}
+  {FOR i:=1 TO M DO
     BEGIN
       FOR j:=1 TO N DO
         WRITE(Board[i, j],' ');
       WRITELN      
-    END;
-    
+    END;}
+  
+  //Проход полученного массива с подсчетом количества клеток под боем  
   Count:=0;
   FOR i := 1 TO M DO
     FOR j := 1 TO N DO
       IF Board[i, j] = '#' THEN
         Count := Count + 1;
+        
   ASSIGN(FOut, 'output.txt');
   REWRITE(FOut);
   WRITELN(FOut, Count);
